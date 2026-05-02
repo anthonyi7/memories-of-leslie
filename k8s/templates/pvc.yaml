@@ -1,0 +1,18 @@
+# Backup PVC — mounted by the nightly backup CronJob (not by Postgres itself).
+# ReadWriteMany so the CronJob pod can be scheduled on any node.
+#
+# IMPORTANT: After creation, patch the bound PV to Retain:
+#   PV=$(kubectl get pvc {{ .Release.Name }}-backup -n mol -o jsonpath='{.spec.volumeName}')
+#   kubectl patch pv $PV -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-backup
+  namespace: mol
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 20Gi

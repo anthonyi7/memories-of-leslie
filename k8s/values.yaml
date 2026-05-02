@@ -1,0 +1,11 @@
+# Only fields that vary between deploys live here.
+# Everything else is hardcoded in templates.
+
+image:
+  # Never use 'latest'. Set to the git commit SHA of the image you pushed to GHCR.
+  tag: v0.1.1
+
+certManager:
+  # Name of the cert-manager ClusterIssuer configured in the cluster.
+  # Fill this in before first deploy. Check with: kubectl get clusterissuer
+  clusterIssuer: dev-ca-issuer
