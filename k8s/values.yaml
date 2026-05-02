@@ -3,7 +3,7 @@
 
 image:
   # Never use 'latest'. Set to the git commit SHA of the image you pushed to GHCR.
-  tag: $(git rev-parse --short HEAD)
+  tag: a008808
 
 certManager:
   # Name of the cert-manager ClusterIssuer configured in the cluster.
