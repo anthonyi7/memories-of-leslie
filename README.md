@@ -348,7 +348,7 @@ Creates a new memory submission.
 
 **Rate limiting**: max 5 submissions per IP per hour (server-side).
 
-**Limits**: `memory_text` max 2,000 characters.
+**Limits**: `memory_text` max 10,000 characters.
 
 ---
 
