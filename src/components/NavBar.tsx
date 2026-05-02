@@ -22,7 +22,7 @@ function NavControls({ names }: { names: string[] }) {
   }
 
   return (
-    <div className="flex items-center gap-1.5 text-sm flex-nowrap">
+    <div className="flex items-center gap-1 text-sm flex-nowrap">
       <span className="text-stone-400 mr-0.5 shrink-0">Sort:</span>
       <button
         onClick={() => router.push(buildUrl('date', currentFilter))}
@@ -36,7 +36,7 @@ function NavControls({ names }: { names: string[] }) {
       >
         Alphabetical
       </button>
-      <span className="text-stone-400 ml-1 mr-0.5 shrink-0">Name:</span>
+      <span className="text-stone-400 mr-0.5 shrink-0">Name:</span>
       <div className="relative shrink-0">
         <select
           value={currentFilter}
