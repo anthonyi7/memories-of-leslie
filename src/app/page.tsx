@@ -4,15 +4,15 @@ import MemoryGrid from '@/components/MemoryGrid';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: { sort?: string | string[] };
+  searchParams: { sort?: string | string[]; filter?: string | string[] };
 }
 
 export default async function HomePage({ searchParams }: Props) {
-  const sortParam = Array.isArray(searchParams.sort)
-    ? searchParams.sort[0]
-    : searchParams.sort;
+  const sortParam = Array.isArray(searchParams.sort) ? searchParams.sort[0] : searchParams.sort;
+  const filterParam = Array.isArray(searchParams.filter) ? searchParams.filter[0] : searchParams.filter;
   const sort = sortParam === 'alpha' ? 'alpha' : 'date';
-  const memories = await getMemories(sort);
+  const filter = filterParam || null;
+  const memories = await getMemories(sort, filter);
 
   return (
     <div>

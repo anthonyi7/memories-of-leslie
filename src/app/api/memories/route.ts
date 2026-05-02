@@ -22,9 +22,10 @@ function isRateLimited(ip: string): boolean {
 
 export async function GET(request: NextRequest) {
   const sort = request.nextUrl.searchParams.get('sort') === 'alpha' ? 'alpha' : 'date';
+  const filter = request.nextUrl.searchParams.get('filter') || null;
 
   try {
-    const memories = await getMemories(sort);
+    const memories = await getMemories(sort, filter);
     return NextResponse.json(memories);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch memories' }, { status: 500 });

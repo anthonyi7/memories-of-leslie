@@ -37,8 +37,9 @@ dev/
 │   │   └── layout.tsx            # Root layout with nav bar
 │   └── components/
 │       ├── NavBar.tsx
-│       ├── MemoryCard.tsx
-│       └── MemoryGrid.tsx
+│       ├── MemoryCard.tsx      # 'use client' — line-clamp-10, detects clamping via DOM ref
+│       ├── MemoryGrid.tsx      # 'use client' — owns modal state, renders modal as sibling
+│       └── MemoryModal.tsx     # expand overlay — close via X, backdrop click, or Escape
 ├── db/
 │   └── init.sql                  # Database schema
 ├── public/
