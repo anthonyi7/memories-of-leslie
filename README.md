@@ -168,9 +168,19 @@ This provides a secondary recovery path independent of the application-level bac
 |---|---|
 | MetalLB | External IP `192.168.4.50` (dev), `192.168.1.50` (prod) |
 | ingress-nginx | Community edition — use `nginx` ingressClassName |
-| cert-manager | ClusterIssuer already configured |
+| cert-manager | ClusterIssuer: `dev-ca-issuer` |
 | Longhorn | Storage provider for all PVCs |
 | Rancher | Cluster management |
+
+### Dev Cluster Active Configuration
+
+| Setting | Value |
+|---|---|
+| Namespace | `mol` |
+| cert-manager ClusterIssuer | `dev-ca-issuer` |
+| Ingress hostname | `memories.anthony.com` |
+| MetalLB IP | `192.168.4.50` |
+| Current image tag | `v0.1.1` |
 
 ### Deploying to Dev
 
@@ -238,7 +248,7 @@ helm upgrade --install memories-of-leslie ./k8s \
 ### First Deploy Checklist
 
 1. **Fill in `certManager.clusterIssuer`** in `k8s/values.yaml`.  
-   Check available issuers: `kubectl get clusterissuer`
+   Dev cluster issuer is `dev-ca-issuer` — already set. Check available issuers: `kubectl get clusterissuer`
 
 2. **Create the database secret** (never committed to git):
    ```bash
