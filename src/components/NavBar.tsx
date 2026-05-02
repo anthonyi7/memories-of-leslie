@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
+const activePill = 'bg-stone-600 text-white border border-stone-500';
+const inactivePill = 'text-stone-300 border border-stone-500 hover:text-white hover:border-stone-400';
+
 function NavControls({ names }: { names: string[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -19,31 +22,27 @@ function NavControls({ names }: { names: string[] }) {
   }
 
   return (
-    <div className="flex items-center gap-1 text-sm flex-wrap">
-      <span className="text-stone-400 mr-1">Sort:</span>
+    <div className="flex items-center gap-1.5 text-sm flex-nowrap">
+      <span className="text-stone-400 mr-0.5 shrink-0">Sort:</span>
       <button
         onClick={() => router.push(buildUrl('date', currentFilter))}
-        className={`px-3 py-1 rounded-full transition-colors ${
-          currentSort === 'date' ? 'bg-stone-600 text-white' : 'text-stone-300 hover:text-white'
-        }`}
+        className={`shrink-0 px-3 py-1 rounded-full transition-colors ${currentSort === 'date' ? activePill : inactivePill}`}
       >
         By Date
       </button>
       <button
         onClick={() => router.push(buildUrl('alpha', currentFilter))}
-        className={`px-3 py-1 rounded-full transition-colors ${
-          currentSort === 'alpha' ? 'bg-stone-600 text-white' : 'text-stone-300 hover:text-white'
-        }`}
+        className={`shrink-0 px-3 py-1 rounded-full transition-colors ${currentSort === 'alpha' ? activePill : inactivePill}`}
       >
         Alphabetical
       </button>
-      <span className="text-stone-400 ml-2 mr-1">Name:</span>
-      <div className="relative">
+      <span className="text-stone-400 ml-1 mr-0.5 shrink-0">Name:</span>
+      <div className="relative shrink-0">
         <select
           value={currentFilter}
           onChange={(e) => router.push(buildUrl(currentSort, e.target.value))}
-          className={`appearance-none pl-3 pr-7 py-1 rounded-full text-sm cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 ${
-            currentFilter ? 'bg-stone-600 text-white' : 'text-stone-300 hover:text-white bg-transparent'
+          className={`appearance-none pl-3 pr-7 py-1 rounded-full text-sm cursor-pointer transition-colors focus:outline-none border max-w-[110px] ${
+            currentFilter ? activePill : `bg-transparent ${inactivePill}`
           }`}
         >
           <option value="">All</option>
@@ -54,7 +53,7 @@ function NavControls({ names }: { names: string[] }) {
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-stone-400 text-xs">
+        <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-stone-400 text-xs select-none">
           ▾
         </span>
       </div>
@@ -68,32 +67,55 @@ export default function NavBar({ names }: { names: string[] }) {
 
   return (
     <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md">
-      {/* Main row — always visible */}
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-x-6">
-        <span className="font-medium text-stone-200 mr-auto">Memories of Leslie</span>
 
-        {/* Desktop: View first (md:order-1), Submit second (md:order-2)
-            Mobile:  Submit first (order-1), View second (order-2) */}
-        <Link
-          href="/submit"
-          className={`text-sm transition-colors hover:text-white order-1 md:order-2 ${
-            pathname === '/submit' ? 'text-white font-medium' : 'text-stone-300'
-          }`}
-        >
-          Submit a Memory
-        </Link>
+      {/* Desktop: single row */}
+      <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">
+        <span className="font-medium text-stone-200 mr-auto">Memories of Leslie</span>
         <Link
           href="/"
-          className={`text-sm transition-colors hover:text-white order-2 md:order-1 ${
-            isHome ? 'text-white font-medium' : 'text-stone-300'
-          }`}
+          className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-stone-300'}`}
         >
           View Memories
         </Link>
-
-        {/* Sort + filter controls — inline on desktop only */}
+        <Link
+          href="/submit"
+          className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-stone-300'}`}
+        >
+          Submit a Memory
+        </Link>
         {isHome && (
-          <div className="hidden md:flex order-3">
+          <Suspense fallback={null}>
+            <NavControls names={names} />
+          </Suspense>
+        )}
+      </div>
+
+      {/* Mobile: three rows */}
+      <div className="md:hidden">
+        {/* Row 1: title */}
+        <div className="px-4 py-3 text-center">
+          <span className="font-semibold text-stone-200 text-lg">Memories of Leslie</span>
+        </div>
+
+        {/* Row 2: nav links */}
+        <div className="border-t border-stone-700 px-4 py-2.5 flex justify-center gap-8">
+          <Link
+            href="/submit"
+            className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-stone-300'}`}
+          >
+            Submit a Memory
+          </Link>
+          <Link
+            href="/"
+            className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-stone-300'}`}
+          >
+            View Memories
+          </Link>
+        </div>
+
+        {/* Row 3: sort + filter, home only */}
+        {isHome && (
+          <div className="border-t border-stone-700 bg-stone-900 px-4 py-2 overflow-x-auto">
             <Suspense fallback={null}>
               <NavControls names={names} />
             </Suspense>
@@ -101,16 +123,6 @@ export default function NavBar({ names }: { names: string[] }) {
         )}
       </div>
 
-      {/* Mobile-only sort/filter row — shown below main row when on home page */}
-      {isHome && (
-        <div className="md:hidden border-t border-stone-700 bg-stone-900">
-          <div className="max-w-5xl mx-auto px-4 py-2">
-            <Suspense fallback={null}>
-              <NavControls names={names} />
-            </Suspense>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
