@@ -17,7 +17,10 @@ export default async function HomePage({ searchParams }: Props) {
   return (
     <div>
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-semibold text-stone-700 mb-2">Memories of Leslie</h1>
+        <h1 className="text-3xl font-semibold text-stone-700 mb-2 flex items-center justify-center gap-2">
+          Memories of Leslie
+          <img src="/rose.png" alt="yellow rose" style={{ height: '36px' }} />
+        </h1>
         <p className="text-stone-500">A living collection of memories shared by those who loved her.</p>
       </div>
       {memories.length === 0 ? (

@@ -68,11 +68,14 @@ export default function NavBar({ names }: { names: string[] }) {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md">
+    <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md border-b border-[#b0aac0]">
 
       {/* Desktop: single row */}
       <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">
-        <span className="font-medium text-stone-200 mr-auto">Memories of Leslie</span>
+        <span className="font-medium text-stone-200 mr-auto inline-flex items-center gap-1.5">
+          Memories of Leslie
+          <img src="/rose.png" alt="yellow rose" style={{ height: '24px' }} />
+        </span>
         <Link
           href="/"
           className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-stone-300'}`}
@@ -96,7 +99,10 @@ export default function NavBar({ names }: { names: string[] }) {
       <div className="md:hidden">
         {/* Row 1: title */}
         <div className="px-4 py-3 text-center">
-          <span className="font-semibold text-stone-200 text-lg">Memories of Leslie</span>
+          <span className="font-semibold text-stone-200 text-lg inline-flex items-center gap-1.5">
+            Memories of Leslie
+            <img src="/rose.png" alt="yellow rose" style={{ height: '24px' }} />
+          </span>
         </div>
 
         {/* Row 2: nav links */}
