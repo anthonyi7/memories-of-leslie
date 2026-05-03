@@ -68,7 +68,7 @@ export default function NavBar({ names }: { names: string[] }) {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md border-b border-[#b0aac0]">
+    <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md border-b border-[#C562AF]">
 
       {/* Desktop: single row */}
       <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">
