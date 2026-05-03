@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
   try {
     const memory = await createMemory(
       typeof name === 'string' && name.trim() ? name.trim() : null,
-      memory_text.trim()
+      memory_text.trim(),
+      ip
     );
     return NextResponse.json(memory, { status: 201 });
   } catch {

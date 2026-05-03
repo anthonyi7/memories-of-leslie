@@ -31,15 +31,15 @@ All application code, Dockerfiles, and Kubernetes manifests live inside `dev/`.
 dev/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # Memory wall (home)
+│   │   ├── page.tsx              # Memory wall (home) — reads ?sort= and ?filter= params
 │   │   ├── submit/page.tsx       # Submit a Memory
 │   │   ├── api/memories/route.ts # GET + POST API handlers
-│   │   └── layout.tsx            # Root layout with nav bar
+│   │   └── layout.tsx            # Root layout — async, fetches distinct names, passes to NavBar
 │   └── components/
-│       ├── NavBar.tsx
-│       ├── MemoryCard.tsx      # 'use client' — line-clamp-10, detects clamping via DOM ref
-│       ├── MemoryGrid.tsx      # 'use client' — owns modal state, renders modal as sibling
-│       └── MemoryModal.tsx     # expand overlay — close via X, backdrop click, or Escape
+│       ├── NavBar.tsx            # 'use client' — 3-row mobile / 1-row desktop; sort + name filter
+│       ├── MemoryCard.tsx        # 'use client' — line-clamp-10, detects clamping via DOM ref
+│       ├── MemoryGrid.tsx        # 'use client' — owns modal state, renders modal as sibling
+│       └── MemoryModal.tsx       # expand overlay — close via X, backdrop click, or Escape
 ├── db/
 │   └── init.sql                  # Database schema
 ├── public/
@@ -181,7 +181,7 @@ This provides a secondary recovery path independent of the application-level bac
 | cert-manager ClusterIssuer | `dev-ca-issuer` |
 | Ingress hostname | `memories.anthony.com` |
 | MetalLB IP | `192.168.4.50` |
-| Current image tag | `v0.1.1` |
+| Current image tag | `v0.1.2` |
 
 ### Deploying to Dev
 
@@ -257,6 +257,7 @@ helm upgrade --install memories-of-leslie ./k8s \
      --from-literal=POSTGRES_USER=leslie \
      --from-literal=POSTGRES_PASSWORD=<your-password> \
      --from-literal=DATABASE_URL='postgresql://leslie:<your-password>@postgres-service:5432/leslie' \
+     --from-literal=ADMIN_PASSWORD=<strong-admin-password> \
      --namespace mol
    ```
 
@@ -287,6 +288,33 @@ helm upgrade --install memories-of-leslie ./k8s \
    ```
 
 8. **Add DNS entry:** `memories.anthony.com` → `192.168.4.50` in Windows DNS
+
+---
+
+### Adding ADMIN_PASSWORD to an Existing Secret
+
+If the cluster is already running (secret was created without `ADMIN_PASSWORD`), patch the existing secret rather than recreating it:
+
+```bash
+kubectl patch secret memories-postgres-secret -n mol \
+  --type='json' \
+  -p='[{"op":"add","path":"/data/ADMIN_PASSWORD","value":"'$(echo -n "<your-admin-password>" | base64)'"}]'
+```
+
+Then restart the pods to pick up the new env var:
+
+```bash
+kubectl rollout restart deployment/memories-of-leslie-app -n mol
+```
+
+### Database Migration (submitter_ip column)
+
+The `submitter_ip` column was added in v0.1.3. Run this once on any existing database:
+
+```bash
+kubectl exec -it -n mol <postgres-pod-name> -- psql -U leslie -d leslie -c \
+  "ALTER TABLE memories ADD COLUMN IF NOT EXISTS submitter_ip TEXT;"
+```
 
 ---
 
@@ -326,14 +354,17 @@ Everything else in the manifests is identical between dev and prod.
 
 ## API Reference
 
-### `GET /api/memories?sort=date|alpha`
+### `GET /api/memories?sort=date|alpha&filter=<value>`
 
-Returns all approved memories. Anonymous entries always sort first regardless of `sort` param.
+Returns approved memories. Anonymous entries always sort first regardless of `sort` param.
 
-| Sort | Behavior |
-|---|---|
-| `date` | Newest first (default) |
-| `alpha` | A–Z by name; anonymous first |
+| Parameter | Values | Behavior |
+|---|---|---|
+| `sort` | `date` (default) | Newest first |
+| `sort` | `alpha` | A–Z by name; anonymous first |
+| `filter` | _(omitted)_ | All memories |
+| `filter` | `anonymous` | Anonymous entries only (`WHERE name IS NULL`) |
+| `filter` | `<name>` | Entries matching that name exactly (parameterized query) |
 
 ### `POST /api/memories`
 

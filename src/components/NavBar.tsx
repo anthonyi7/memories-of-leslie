@@ -65,6 +65,8 @@ export default function NavBar({ names }: { names: string[] }) {
   const pathname = usePathname();
   const isHome = pathname === '/';
 
+  if (pathname.startsWith('/admin')) return null;
+
   return (
     <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md">
 

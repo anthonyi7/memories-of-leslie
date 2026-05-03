@@ -6,6 +6,11 @@ metadata:
   labels:
     app: {{ .Release.Name }}-app
 spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
   replicas: 3
   selector:
     matchLabels:
@@ -34,6 +39,11 @@ spec:
                 secretKeyRef:
                   name: memories-postgres-secret
                   key: DATABASE_URL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: memories-postgres-secret
+                  key: ADMIN_PASSWORD
             - name: NODE_ENV
               value: production
           resources:

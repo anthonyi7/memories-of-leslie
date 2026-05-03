@@ -23,6 +23,10 @@ export interface Memory {
   submitted_at: string;
 }
 
+export interface AdminMemory extends Memory {
+  submitter_ip: string | null;
+}
+
 export async function getMemories(
   sort: 'date' | 'alpha' = 'date',
   filter?: string | null
@@ -58,13 +62,31 @@ export async function getDistinctNames(): Promise<string[]> {
 
 export async function createMemory(
   name: string | null,
-  memoryText: string
+  memoryText: string,
+  submitterIp: string
 ): Promise<Memory> {
   const { rows } = await pool.query<Memory>(
-    `INSERT INTO memories (name, memory_text)
-     VALUES ($1, $2)
+    `INSERT INTO memories (name, memory_text, submitter_ip)
+     VALUES ($1, $2, $3)
      RETURNING id, name, memory_text, submitted_at`,
-    [name, memoryText]
+    [name, memoryText, submitterIp]
   );
   return rows[0];
+}
+
+export async function getAllMemoriesAdmin(): Promise<AdminMemory[]> {
+  const { rows } = await pool.query<AdminMemory>(
+    `SELECT id, name, memory_text, submitted_at, submitter_ip
+     FROM memories
+     ORDER BY submitted_at DESC`
+  );
+  return rows;
+}
+
+export async function deleteMemory(id: string): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `DELETE FROM memories WHERE id = $1`,
+    [id]
+  );
+  return (rowCount ?? 0) > 0;
 }
