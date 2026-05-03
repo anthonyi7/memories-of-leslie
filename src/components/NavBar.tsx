@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-const activePill = 'bg-stone-600 text-white border border-stone-500';
-const inactivePill = 'text-stone-300 border border-stone-500 hover:text-white hover:border-stone-400';
+const activePill = 'bg-white/30 text-white border border-white/80 font-medium';
+const inactivePill = 'text-white border border-white/50 hover:border-white';
 
 function NavControls({ names }: { names: string[] }) {
   const router = useRouter();
@@ -23,7 +23,7 @@ function NavControls({ names }: { names: string[] }) {
 
   return (
     <div className="flex items-center gap-1 text-sm flex-nowrap">
-      <span className="text-stone-400 mr-0.5 shrink-0">Sort:</span>
+      <span className="text-white/75 mr-0.5 shrink-0">Sort:</span>
       <button
         onClick={() => router.push(buildUrl('date', currentFilter))}
         className={`shrink-0 px-3 py-1 rounded-full transition-colors ${currentSort === 'date' ? activePill : inactivePill}`}
@@ -36,7 +36,7 @@ function NavControls({ names }: { names: string[] }) {
       >
         Alphabetical
       </button>
-      <span className="text-stone-400 mr-0.5 shrink-0">Name:</span>
+      <span className="text-white/75 mr-0.5 shrink-0">Name:</span>
       <div className="relative shrink-0">
         <select
           value={currentFilter}
@@ -53,7 +53,7 @@ function NavControls({ names }: { names: string[] }) {
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-stone-400 text-xs select-none">
+        <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-white/75 text-xs select-none">
           ▾
         </span>
       </div>
@@ -68,23 +68,23 @@ export default function NavBar({ names }: { names: string[] }) {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <nav className="bg-stone-800 text-white sticky top-0 z-10 shadow-md" style={{ borderBottom: '3px solid #C562AF' }}>
+    <nav className="text-white sticky top-0 z-10 shadow-md" style={{ backgroundColor: '#C562AF' }}>
 
       {/* Desktop: single row */}
       <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">
-        <span className="font-medium text-stone-200 mr-auto inline-flex items-center gap-1.5">
+        <span className="font-medium text-white mr-auto inline-flex items-center gap-1.5">
           Memories of Leslie
           <img src="/rose.png" alt="yellow rose" style={{ height: '24px' }} />
         </span>
         <Link
           href="/"
-          className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-stone-300'}`}
+          className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-white/80'}`}
         >
           View Memories
         </Link>
         <Link
           href="/submit"
-          className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-stone-300'}`}
+          className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-white/80'}`}
         >
           Submit a Memory
         </Link>
@@ -99,23 +99,23 @@ export default function NavBar({ names }: { names: string[] }) {
       <div className="md:hidden">
         {/* Row 1: title */}
         <div className="px-4 py-3 text-center">
-          <span className="font-semibold text-stone-200 text-lg inline-flex items-center gap-1.5">
+          <span className="font-semibold text-white text-lg inline-flex items-center gap-1.5">
             Memories of Leslie
             <img src="/rose.png" alt="yellow rose" style={{ height: '24px' }} />
           </span>
         </div>
 
         {/* Row 2: nav links */}
-        <div className="border-t border-stone-700 px-4 py-2.5 flex justify-center gap-8">
+        <div className="border-t border-white/20 px-4 py-2.5 flex justify-center gap-8">
           <Link
             href="/submit"
-            className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-stone-300'}`}
+            className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-white/80'}`}
           >
             Submit a Memory
           </Link>
           <Link
             href="/"
-            className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-stone-300'}`}
+            className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-white/80'}`}
           >
             View Memories
           </Link>
@@ -123,7 +123,7 @@ export default function NavBar({ names }: { names: string[] }) {
 
         {/* Row 3: sort + filter, home only */}
         {isHome && (
-          <div className="border-t border-stone-700 bg-stone-900 px-4 py-2 overflow-x-auto">
+          <div className="border-t border-white/20 bg-black/10 px-4 py-2 overflow-x-auto">
             <Suspense fallback={null}>
               <NavControls names={names} />
             </Suspense>
