@@ -31,15 +31,22 @@ All application code, Dockerfiles, and Kubernetes manifests live inside `dev/`.
 dev/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # Memory wall (home) — reads ?sort= and ?filter= params
-│   │   ├── submit/page.tsx       # Submit a Memory
-│   │   ├── api/memories/route.ts # GET + POST API handlers
-│   │   └── layout.tsx            # Root layout — async, fetches distinct names, passes to NavBar
-│   └── components/
-│       ├── NavBar.tsx            # 'use client' — 3-row mobile / 1-row desktop; sort + name filter
-│       ├── MemoryCard.tsx        # 'use client' — line-clamp-10, detects clamping via DOM ref
-│       ├── MemoryGrid.tsx        # 'use client' — owns modal state, renders modal as sibling
-│       └── MemoryModal.tsx       # expand overlay — close via X, backdrop click, or Escape
+│   │   ├── page.tsx                          # Memory wall (home) — reads ?sort= and ?filter= params
+│   │   ├── submit/page.tsx                   # Submit a Memory
+│   │   ├── admin/page.tsx                    # Admin table (server component, force-dynamic)
+│   │   ├── admin/AdminTable.tsx              # 'use client' — table with delete buttons
+│   │   ├── admin/login/page.tsx              # Login page (server component, redirects if authed)
+│   │   ├── admin/login/AdminLoginForm.tsx    # 'use client' — login form
+│   │   ├── api/memories/route.ts             # GET + POST API handlers
+│   │   ├── api/admin/login/route.ts          # POST — validates ADMIN_PASSWORD, sets cookie
+│   │   ├── api/admin/memories/[id]/route.ts  # DELETE — removes a memory by ID
+│   │   └── layout.tsx                        # Root layout — async, fetches distinct names, passes to NavBar
+│   ├── components/
+│   │   ├── NavBar.tsx            # 'use client' — 3-row mobile / 1-row desktop; sort + name filter; hidden on /admin routes
+│   │   ├── MemoryCard.tsx        # 'use client' — line-clamp-10, detects clamping via DOM ref
+│   │   ├── MemoryGrid.tsx        # 'use client' — owns modal state, renders modal as sibling
+│   │   └── MemoryModal.tsx       # expand overlay — close via X, backdrop click, or Escape
+│   └── middleware.ts             # Edge middleware — protects /admin and /api/admin/* routes
 ├── db/
 │   └── init.sql                  # Database schema
 ├── public/
@@ -91,6 +98,7 @@ npm run dev                 # Start Next.js at http://localhost:3000
 | Variable | Description | Example |
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:password@localhost:5432/leslie` |
+| `ADMIN_PASSWORD` | Protects the `/admin` page | any strong password |
 
 ---
 
@@ -104,12 +112,14 @@ CREATE TABLE memories (
   name          TEXT,
   memory_text   TEXT NOT NULL,
   submitted_at  TIMESTAMPTZ DEFAULT NOW(),
-  approved      BOOLEAN DEFAULT TRUE
+  approved      BOOLEAN DEFAULT TRUE,
+  submitter_ip  TEXT
 );
 ```
 
 - `name` is nullable — blank submissions are stored as NULL and displayed as "Anonymous"
 - `approved` defaults to TRUE (no moderation queue currently)
+- `submitter_ip` is captured from `x-forwarded-for` → `x-real-ip` → `'unknown'` on POST
 - Schema is applied via `db/init.sql` at container startup
 
 ---
@@ -181,7 +191,7 @@ This provides a secondary recovery path independent of the application-level bac
 | cert-manager ClusterIssuer | `dev-ca-issuer` |
 | Ingress hostname | `memories.anthony.com` |
 | MetalLB IP | `192.168.4.50` |
-| Current image tag | `v0.1.2` |
+| Current image tag | `v0.1.3` |
 
 ### Deploying to Dev
 
@@ -349,6 +359,36 @@ When a dev branch is stable and merged to `main`:
 5. Run `helm upgrade` on the prod cluster
 
 Everything else in the manifests is identical between dev and prod.
+
+---
+
+## Admin Page
+
+### Access
+
+Navigate to `/admin`. You will be redirected to `/admin/login` if not authenticated.
+
+Enter the `ADMIN_PASSWORD` value from the Kubernetes secret. On success a `admin_session` cookie is set (httpOnly, secure in production, sameSite=strict, 24h TTL) and you are redirected to `/admin`.
+
+### Admin Table
+
+Displays all memories (approved and unapproved) with:
+- Submitted date
+- Submitter name (or Anonymous)
+- Memory text truncated to 100 chars (full text on hover)
+- Submitter IP address
+- Delete button — permanent, no confirmation, row removed immediately without page reload
+
+### Middleware
+
+`src/middleware.ts` runs on the Edge Runtime and protects all `/admin` and `/api/admin/*` routes. `/admin/login` and `/api/admin/login` are explicitly excluded from protection.
+
+- Unauthenticated browser requests → redirect to `/admin/login`
+- Unauthenticated API requests → `401 Unauthorized` JSON response
+
+### Admin API
+
+`DELETE /api/admin/memories/:id` — permanently deletes the memory with the given UUID. Returns `{ ok: true }` or `404` if not found. Requires the `admin_session` cookie.
 
 ---
 

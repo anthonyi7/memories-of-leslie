@@ -41,14 +41,13 @@ function NavControls({ names }: { names: string[] }) {
         <select
           value={currentFilter}
           onChange={(e) => router.push(buildUrl(currentSort, e.target.value))}
-          className={`appearance-none pl-3 pr-7 py-1 rounded-full text-sm cursor-pointer transition-colors focus:outline-none border max-w-[110px] ${
-            currentFilter ? activePill : `bg-transparent ${inactivePill}`
-          }`}
+          className={`appearance-none pl-3 pr-7 py-1 rounded-full text-sm cursor-pointer transition-colors focus:outline-none border max-w-[110px] ${currentFilter ? activePill : `bg-transparent ${inactivePill}`
+            }`}
         >
-          <option value="">All</option>
-          <option value="anonymous">Anonymous</option>
+          <option value="" className="text-stone-800 bg-white">All</option>
+          <option value="anonymous" className="text-stone-800 bg-white">Anonymous</option>
           {names.map((name) => (
-            <option key={name} value={name}>
+            <option key={name} value={name} className="text-stone-800 bg-white">
               {name}
             </option>
           ))}
@@ -68,7 +67,7 @@ export default function NavBar({ names }: { names: string[] }) {
   if (pathname.startsWith('/admin')) return null;
 
   return (
-    <nav className="text-white sticky top-0 z-10 shadow-md" style={{ backgroundColor: '#C562AF' }}>
+    <nav className="text-white sticky top-0 z-10 shadow-md" style={{ backgroundColor: '#934790' }}>
 
       {/* Desktop: single row */}
       <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">

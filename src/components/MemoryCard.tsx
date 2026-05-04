@@ -27,7 +27,7 @@ export default function MemoryCard({ memory, onExpand }: Props) {
   }, []);
 
   return (
-    <article className="bg-white rounded-lg shadow-sm border border-stone-100 p-5 flex flex-col gap-3">
+    <article className="bg-white rounded-lg shadow-sm border border-stone-200 p-5 flex flex-col gap-3">
       <header className="flex items-baseline justify-between gap-2">
         <span className="font-medium text-stone-700">From: {displayName}</span>
         <time className="text-xs text-stone-400 shrink-0">{date}</time>
