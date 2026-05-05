@@ -2,6 +2,9 @@
 
 A living memory book where people who knew Leslie can share memories of her.
 
+
+Note: Portions of this project have been designed with the use of Claude
+
 ---
 
 ## Project Overview
@@ -9,8 +12,6 @@ A living memory book where people who knew Leslie can share memories of her.
 - **Dev URL**: https://memories.anthony.com
 - **Prod URL**: https://memoriesofleslie.com
 - **Stack**: Next.js (App Router) + PostgreSQL + Kubernetes (Helm)
-- **Service is in June 2025** — this is the highest priority project
-
 ---
 
 ## Directory Layout
@@ -426,7 +427,6 @@ Creates a new memory submission.
 
 ## Architecture Notes
 
-- This site is designed for long-term durability — it should outlast any single cluster
 - No authentication required for submissions
 - No hardcoded credentials anywhere — all secrets via Kubernetes Secret or env vars
 - `docker-compose.yml` is for local development only; never used in cluster
@@ -434,7 +434,3 @@ Creates a new memory submission.
 
 ---
 
-## Contacts / Context
-
-- Memorial service: June 2025
-- Developer: Anthony (anthonyirwin95@gmail.com)
