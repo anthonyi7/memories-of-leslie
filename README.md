@@ -34,6 +34,7 @@ dev/
 │   ├── app/
 │   │   ├── page.tsx                          # Memory wall (home) — reads ?sort= and ?filter= params
 │   │   ├── submit/page.tsx                   # Submit a Memory
+│   │   ├── other/page.tsx                    # Other page — Spotify embed card + Program card with modal
 │   │   ├── admin/page.tsx                    # Admin table (server component, force-dynamic)
 │   │   ├── admin/AdminTable.tsx              # 'use client' — table with delete buttons
 │   │   ├── admin/login/page.tsx              # Login page (server component, redirects if authed)
@@ -43,7 +44,7 @@ dev/
 │   │   ├── api/admin/memories/[id]/route.ts  # DELETE — removes a memory by ID
 │   │   └── layout.tsx                        # Root layout — async, fetches distinct names, passes to NavBar
 │   ├── components/
-│   │   ├── NavBar.tsx            # 'use client' — 3-row mobile / 1-row desktop; sort + name filter; hidden on /admin routes
+│   │   ├── NavBar.tsx            # 'use client' — mobile: 3 rows; desktop: 1 row (2 rows on home w/ sort controls); hidden on /admin
 │   │   ├── MemoryCard.tsx        # 'use client' — line-clamp-10, detects clamping via DOM ref
 │   │   ├── MemoryGrid.tsx        # 'use client' — owns modal state, renders modal as sibling
 │   │   └── MemoryModal.tsx       # expand overlay — close via X, backdrop click, or Escape
@@ -51,6 +52,10 @@ dev/
 ├── db/
 │   └── init.sql                  # Database schema
 ├── public/
+│   ├── rose.png                              # Yellow rose icon used in nav + hero
+│   ├── program_preview.png                   # Preview thumbnail shown on /other Program card
+│   ├── program_1.jpeg                        # Program page 1 (shown in modal)
+│   └── program_2.jpeg                        # Program page 2 (shown in modal)
 ├── Dockerfile
 ├── docker-compose.yml            # Local dev only
 ├── .env.example
@@ -72,7 +77,7 @@ dev/
         ├── pdb.yaml
         ├── backup-cronjob.yaml
         └── storageclass.yaml
-├── scripts/
+├── scripts/                                  # All scripts self-cd to dev/ — safe to call from any directory
 │   ├── deploy.sh                             # Build, push, and deploy to active cluster
 │   ├── restore.sh                            # Interactive full-cluster recovery runbook
 │   ├── restore-db.sh <file.sql.gz>           # Restore memories table from a backup file
