@@ -8,7 +8,7 @@ export default function OtherPage() {
   return (
     <div>
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-semibold text-stone-700 mb-2">"She is not gone, she is just walking ahead of us on a path we have not yet taken."</h1>
+        <h1 className="text-3xl font-semibold text-stone-700 mb-2"></h1>
         <p className="text-stone-500">More resources in memory of Leslie</p>
       </div>
 
