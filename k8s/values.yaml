@@ -9,3 +9,8 @@ certManager:
   # Name of the cert-manager ClusterIssuer configured in the cluster.
   # Fill this in before first deploy. Check with: kubectl get clusterissuer
   clusterIssuer: dev-ca-issuer
+
+ingress:
+  # Hostname for the ingress rule and TLS certificate.
+  # Dev: memories.anthony.com  |  Prod: memoriesofleslie.com
+  hostname: memories.anthony.com

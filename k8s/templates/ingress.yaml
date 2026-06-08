@@ -11,10 +11,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - memories.anthony.com
+        - {{ .Values.ingress.hostname | quote }}
       secretName: memories-of-leslie-tls
   rules:
-    - host: memories.anthony.com
+    - host: {{ .Values.ingress.hostname | quote }}
       http:
         paths:
           - path: /
