@@ -8,6 +8,9 @@
 
 set -euo pipefail
 
+# Always run from dev/ regardless of where the script is called from
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 NAMESPACE="mol"
 RELEASE="memories-of-leslie"
 HELM_CHART="./k8s"

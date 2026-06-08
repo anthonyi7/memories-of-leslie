@@ -3,6 +3,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 kubectl run list-backups-tmp -n mol --restart=Never \
   --image=alpine \
   --overrides='{"spec":{"containers":[{"name":"ls","image":"alpine","command":["ls","-lh","/backups"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}],"volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"memories-of-leslie-backup"}}]}}'

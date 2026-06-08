@@ -63,6 +63,7 @@ function NavControls({ names }: { names: string[] }) {
 export default function NavBar({ names }: { names: string[] }) {
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isOther = pathname === '/other';
 
   if (pathname.startsWith('/admin')) return null;
 
@@ -70,28 +71,42 @@ export default function NavBar({ names }: { names: string[] }) {
     <nav className="text-white sticky top-0 z-10 shadow-md" style={{ backgroundColor: '#934790' }}>
 
       {/* Desktop: single row */}
-      <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center gap-x-6">
-        <span className="font-medium text-white mr-auto inline-flex items-center gap-1.5">
+      <div className="hidden md:flex max-w-5xl mx-auto px-4 py-3 items-center relative">
+        <span className="font-medium text-white inline-flex items-center gap-1.5 shrink-0">
           Memories of Leslie
           <img src="/rose.png" alt="yellow rose" style={{ height: '24px' }} />
         </span>
-        <Link
-          href="/"
-          className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-white/80'}`}
-        >
-          View Memories
-        </Link>
-        <Link
-          href="/submit"
-          className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-white/80'}`}
-        >
-          Submit a Memory
-        </Link>
-        {isHome && (
-          <Suspense fallback={null}>
-            <NavControls names={names} />
-          </Suspense>
-        )}
+
+        {/* Centered nav links */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-6">
+          <Link
+            href="/"
+            className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-white/80'}`}
+          >
+            View Memories
+          </Link>
+          <Link
+            href="/submit"
+            className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-white/80'}`}
+          >
+            Submit a Memory
+          </Link>
+          <Link
+            href="/other"
+            className={`text-sm transition-colors hover:text-white ${isOther ? 'text-white font-medium' : 'text-white/80'}`}
+          >
+            Other
+          </Link>
+        </div>
+
+        {/* Sort controls pushed to right */}
+        <div className="ml-auto">
+          {isHome && (
+            <Suspense fallback={null}>
+              <NavControls names={names} />
+            </Suspense>
+          )}
+        </div>
       </div>
 
       {/* Mobile: three rows */}
@@ -105,7 +120,7 @@ export default function NavBar({ names }: { names: string[] }) {
         </div>
 
         {/* Row 2: nav links */}
-        <div className="border-t border-white/20 px-4 py-2.5 flex justify-center gap-8">
+        <div className="border-t border-white/20 px-4 py-2.5 flex justify-center gap-6">
           <Link
             href="/submit"
             className={`text-sm transition-colors hover:text-white ${pathname === '/submit' ? 'text-white font-medium' : 'text-white/80'}`}
@@ -117,6 +132,12 @@ export default function NavBar({ names }: { names: string[] }) {
             className={`text-sm transition-colors hover:text-white ${isHome ? 'text-white font-medium' : 'text-white/80'}`}
           >
             View Memories
+          </Link>
+          <Link
+            href="/other"
+            className={`text-sm transition-colors hover:text-white ${isOther ? 'text-white font-medium' : 'text-white/80'}`}
+          >
+            Other
           </Link>
         </div>
 

@@ -70,7 +70,13 @@ dev/
         ├── configmap.yaml
         ├── secret.yaml
         ├── pdb.yaml
-        └── backup-cronjob.yaml
+        ├── backup-cronjob.yaml
+        └── storageclass.yaml
+├── scripts/
+│   ├── deploy.sh                             # Build, push, and deploy to active cluster
+│   ├── restore.sh                            # Interactive full-cluster recovery runbook
+│   ├── restore-db.sh <file.sql.gz>           # Restore memories table from a backup file
+│   └── list-backups.sh                       # List backup files on the backup PVC
 ```
 
 ---
@@ -131,11 +137,16 @@ CREATE TABLE memories (
 
 ### PVC Configuration
 
-All PVCs use:
-- `storageClassName: longhorn`
-- `persistentVolumeReclaimPolicy: Retain`
+A custom `longhorn-retain` StorageClass (`k8s/templates/storageclass.yaml`) sets `reclaimPolicy: Retain` automatically. New deploys use it everywhere. The two existing live PVCs are a special case:
 
-The `Retain` reclaim policy is deliberate and must never be changed. If the StatefulSet or Helm release is deleted, the PVs will **not** be garbage collected — they remain in `Released` state and can be re-bound manually.
+| PVC | StorageClass | Retain how |
+|---|---|---|
+| `postgres-data-...-postgres-0` | `longhorn` (existing, immutable) | PV manually patched to Retain |
+| `memories-of-leslie-backup` | `longhorn` (existing, immutable) | PV manually patched to Retain |
+
+Future fresh deploys will provision both PVCs with `longhorn-retain` automatically.
+
+The `Retain` reclaim policy means if the StatefulSet or Helm release is deleted, the PVs will **not** be garbage collected — they remain in `Released` state and can be re-bound manually.
 
 ### Volumes in Use
 
@@ -192,7 +203,7 @@ This provides a secondary recovery path independent of the application-level bac
 | cert-manager ClusterIssuer | `dev-ca-issuer` |
 | Ingress hostname | `memories.anthony.com` |
 | MetalLB IP | `192.168.4.50` |
-| Current image tag | `v0.1.3` |
+| Current image tag | `a27a7b5` |
 
 ### Deploying to Dev
 
@@ -281,12 +292,7 @@ helm upgrade --install memories-of-leslie ./k8s \
      --set image.tag=<IMAGE_TAG>
    ```
 
-5. **Patch PVs to Retain immediately after deploy** — do this before anything else:
-   ```bash
-   kubectl get pvc -n mol
-   kubectl patch pv <pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
-   # Run for each PV — there will be at least two: postgres-data and backup
-   ```
+5. PVs are automatically set to Retain via the `longhorn-retain` StorageClass. No manual patching required.
 
 6. **Verify pods are running:**
    ```bash
@@ -329,6 +335,20 @@ kubectl exec -it -n mol <postgres-pod-name> -- psql -U leslie -d leslie -c \
 
 ---
 
+### Backup and Restore Scripts
+
+Run from `dev/`:
+
+```bash
+# List backup files on the backup PVC
+./scripts/list-backups.sh
+
+# Restore the memories table from a specific backup file
+./scripts/restore-db.sh leslie_YYYYMMDD_HHMMSS.sql.gz
+```
+
+`restore-db.sh` drops the existing table (with `IF EXISTS`), runs the restore pod, waits for completion, prints logs, and cleans up. Safe to run against a live cluster.
+
 ### Verify Backup CronJob
 
 ```bash
@@ -346,6 +366,16 @@ kubectl logs -l job-name=manual-backup-test -n mol
 Before first deploy, check Longhorn UI (via Rancher) → **Settings → Allow RWX volumes**.
 
 The backup PVC uses `ReadWriteMany` — this requires Longhorn NFS mode to be active. If RWX is not enabled, the backup CronJob pod will fail to schedule.
+
+---
+
+## ⚠️ Off-Cluster Backups — Not Yet Configured
+
+**Current gap:** all backup data lives inside the cluster on the backup PVC. If the physical nodes die, both the data volume and the backup PVC are lost. The in-cluster backup/restore workflow (`restore-db.sh`) only protects against logical data loss (accidental deletes, table drops) while the cluster is healthy.
+
+**Planned fix:** configure Longhorn backup target → Backblaze B2. Longhorn can push volume snapshots to any S3-compatible bucket on a schedule. This is the next infrastructure task before going to prod.
+
+Until this is set up, the site should not be considered production-safe from a data durability standpoint.
 
 ---
 

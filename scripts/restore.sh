@@ -9,6 +9,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 NAMESPACE="mol"
 RELEASE="memories-of-leslie"
 HELM_CHART="./k8s"
