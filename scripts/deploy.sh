@@ -23,10 +23,14 @@ fi
 
 COMMIT_MSG="$1"
 
-# Commit and push
+# Commit and push only if there are changes
 git add .
-git commit -m "$COMMIT_MSG"
-git push
+if ! git diff --cached --quiet; then
+  git commit -m "$COMMIT_MSG"
+  git push
+else
+  echo "Nothing to commit, building from current HEAD..."
+fi
 
 # Capture SHA after commit
 SHA=$(git rev-parse --short HEAD)
