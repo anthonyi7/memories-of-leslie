@@ -236,7 +236,25 @@ All images are published to GitHub Container Registry (GHCR):
 ghcr.io/anthonyi7/memories-of-leslie:<tag>
 ```
 
+The registry is **private** — every cluster needs an image pull secret before pods can pull images.
+
 `values.yaml` uses `IMAGE_TAG` as a placeholder. Never use `latest` — always tag with the git commit SHA.
+
+### Image Pull Secret
+
+Required once per cluster. Uses a GitHub Personal Access Token (PAT) — not your GitHub password. PAT scope needed: `read:packages`.
+
+Create at: GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
+
+```bash
+kubectl create secret docker-registry ghcr-pull-secret \
+  --docker-server=ghcr.io \
+  --docker-username=anthonyi7 \
+  --docker-password=<YOUR_PAT> \
+  --namespace mol
+```
+
+The secret is referenced in `deployment.yaml` via `imagePullSecrets`. It survives Helm upgrades — create once per cluster, never recreate unless the PAT is rotated.
 
 ### Build and Push
 
@@ -288,28 +306,38 @@ helm upgrade --install memories-of-leslie ./k8s \
      --namespace mol
    ```
 
-3. **Build and push the image** (see Build and Push section above).
+3. **Create the GHCR image pull secret** (registry is private — required before pods can start):
+   ```bash
+   kubectl create secret docker-registry ghcr-pull-secret \
+     --docker-server=ghcr.io \
+     --docker-username=anthonyi7 \
+     --docker-password=<YOUR_PAT> \
+     --namespace mol
+   ```
+   PAT scope needed: `read:packages`. Create at GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (classic).
 
-4. **Deploy:**
+4. **Build and push the image** (see Build and Push section above).
+
+5. **Deploy:**
    ```bash
    helm upgrade --install memories-of-leslie ./k8s \
      --namespace mol \
      --set image.tag=<IMAGE_TAG>
    ```
 
-5. PVs are automatically set to Retain via the `longhorn-retain` StorageClass. No manual patching required.
+6. PVs are automatically set to Retain via the `longhorn-retain` StorageClass. No manual patching required.
 
-6. **Verify pods are running:**
+7. **Verify pods are running:**
    ```bash
    kubectl get pods -n mol
    ```
 
-7. **Verify ingress:**
+8. **Verify ingress:**
    ```bash
    kubectl get ingress -n mol
    ```
 
-8. **Add DNS entry:** `memories.anthony.com` → `192.168.4.50` in Windows DNS
+9. **Add DNS entry:** `memories.anthony.com` → `192.168.4.50` in Windows DNS
 
 ---
 
@@ -457,6 +485,56 @@ Creates a new memory submission.
 **Rate limiting**: max 5 submissions per IP per hour (server-side).
 
 **Limits**: `memory_text` max 10,000 characters.
+
+## Longhorn Backup Target — Backblaze B2
+
+### Prerequisites
+- Backblaze B2 account with a private bucket named `mol-longhorn-backups`
+- Application Key scoped to that bucket (keyID + applicationKey)
+- Bucket endpoint URL (found in B2 console under bucket details, looks like
+  `https://s3.us-west-004.backblazeb2.com`)
+
+### Step 1 — Create the Kubernetes secret
+```bash
+kubectl create secret generic longhorn-b2-secret \
+  -n longhorn-system \
+  --from-literal=AWS_ACCESS_KEY_ID=<your-b2-keyID> \
+  --from-literal=AWS_SECRET_ACCESS_KEY=<your-b2-applicationKey> \
+  --from-literal=AWS_ENDPOINTS=https://s3.us-west-004.backblazeb2.com
+```
+Replace the endpoint with your actual bucket endpoint.
+
+### Step 2 — Create the backup target in Longhorn UI
+Longhorn UI (via Rancher) → Backup and Restore → Backup Targets →
+Create Backup Target:
+- Name: `memories-b2`
+- URL: `s3://mol-longhorn-backups@us-west-004/`
+  (region must match your endpoint — e.g. us-west-004)
+- Credential Secret: `longhorn-b2-secret`
+- Save and confirm status shows Available
+
+Note: The URL field takes only the s3:// format. The https:// endpoint
+goes in the secret only — do not put it in the URL field or it will fail.
+
+### Step 3 — Create the recurring backup job
+Longhorn UI → Recurring Jobs → Create Recurring Job:
+- Name: `postgres-memories`
+- Task: Backup
+- Retain: 14
+- Concurrency: 1
+- Cron: `0 2 * * *` (2:00 AM UTC = 8:00 PM MDT / 7:00 PM MST)
+- Click OK
+
+### Step 4 — Assign the job to the postgres-data volume
+Longhorn UI → Volumes → click the postgres-data volume →
+scroll to Recurring Jobs → add `postgres-memories` and select
+backup target `memories-b2`
+
+### Step 5 — Verify
+Trigger a manual backup from the volume page (Create Backup button)
+and confirm it appears in:
+- Longhorn UI → Backup and Restore → Backups
+- Backblaze B2 console → your bucket (files should appear within a minute)
 
 ---
 
