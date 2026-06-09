@@ -286,6 +286,7 @@ helm upgrade --install memories-of-leslie ./k8s \
 - Readiness and liveness probes on the Next.js deployment
 - Ingress annotations use community ingress-nginx style (`nginx.ingress.kubernetes.io/`)
 - TLS via cert-manager — certificate issued automatically from the configured ClusterIssuer
+- `values.yaml` has three fields: `image.tag`, `certManager.clusterIssuer`, `ingress.hostname` — everything else is hardcoded in templates
 
 ---
 
@@ -320,9 +321,19 @@ helm upgrade --install memories-of-leslie ./k8s \
 
 5. **Deploy:**
    ```bash
+   # Dev
    helm upgrade --install memories-of-leslie ./k8s \
      --namespace mol \
-     --set image.tag=<IMAGE_TAG>
+     --set image.tag=<IMAGE_TAG> \
+     --set certManager.clusterIssuer=dev-ca-issuer \
+     --set ingress.hostname=memories.anthony.com
+
+   # Prod
+   helm upgrade --install memories-of-leslie ./k8s \
+     --namespace mol \
+     --set image.tag=<IMAGE_TAG> \
+     --set certManager.clusterIssuer=letsencrypt \
+     --set ingress.hostname=memoriesofleslie.com
    ```
 
 6. PVs are automatically set to Retain via the `longhorn-retain` StorageClass. No manual patching required.
@@ -402,27 +413,31 @@ The backup PVC uses `ReadWriteMany` — this requires Longhorn NFS mode to be ac
 
 ---
 
-## ⚠️ Off-Cluster Backups — Not Yet Configured
+## Off-Cluster Backups — Backblaze B2
 
-**Current gap:** all backup data lives inside the cluster on the backup PVC. If the physical nodes die, both the data volume and the backup PVC are lost. The in-cluster backup/restore workflow (`restore-db.sh`) only protects against logical data loss (accidental deletes, table drops) while the cluster is healthy.
-
-**Planned fix:** configure Longhorn backup target → Backblaze B2. Longhorn can push volume snapshots to any S3-compatible bucket on a schedule. This is the next infrastructure task before going to prod.
-
-Until this is set up, the site should not be considered production-safe from a data durability standpoint.
+Longhorn backup target is configured to push volume snapshots to Backblaze B2 (S3-compatible). Configured via Longhorn UI → Settings → Backup Target on both clusters.
 
 ---
 
 ## Dev → Prod Promotion
 
-When a dev branch is stable and merged to `main`:
+1. Run `./scripts/deploy.sh "message"` on dev — builds, pushes image, deploys to dev
+2. Verify dev looks correct at `memories.anthony.com`
+3. On the prod machine: `git pull` inside `prod/`
+4. Get the current image tag from dev:
+   ```bash
+   kubectl get deployment memories-of-leslie-app -n mol -o jsonpath='{.spec.template.spec.containers[0].image}' | cut -d: -f2
+   ```
+5. Deploy to prod:
+   ```bash
+   helm upgrade --install memories-of-leslie ./k8s \
+     --namespace mol \
+     --set image.tag=<TAG_FROM_STEP_4> \
+     --set certManager.clusterIssuer=letsencrypt \
+     --set ingress.hostname=memoriesofleslie.com
+   ```
 
-1. On the prod host: `git pull` inside `prod/`
-2. Change ingress hostname from `memories.anthony.com` → `memoriesofleslie.com`
-3. Update MetalLB context to prod cluster IP `192.168.1.50`
-4. Point external DNS for `memoriesofleslie.com` to the prod public IP via UDM
-5. Run `helm upgrade` on the prod cluster
-
-Everything else in the manifests is identical between dev and prod.
+No image rebuild needed — prod pulls the same image already in GHCR from the dev deploy.
 
 ---
 

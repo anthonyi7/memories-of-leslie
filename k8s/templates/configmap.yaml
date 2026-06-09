@@ -12,7 +12,8 @@ data:
       name          TEXT,
       memory_text   TEXT NOT NULL,
       submitted_at  TIMESTAMPTZ DEFAULT NOW(),
-      approved      BOOLEAN DEFAULT TRUE
+      approved      BOOLEAN DEFAULT TRUE,
+      submitter_ip  TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_memories_approved_submitted
