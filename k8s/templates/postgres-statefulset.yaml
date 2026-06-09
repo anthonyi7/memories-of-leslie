@@ -68,4 +68,4 @@ spec:
         storageClassName: longhorn-retain
         resources:
           requests:
-            storage: 10Gi
+            storage: 5Gi
