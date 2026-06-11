@@ -208,7 +208,7 @@ This provides a secondary recovery path independent of the application-level bac
 | cert-manager ClusterIssuer | `dev-ca-issuer` |
 | Ingress hostname | `memories.anthony.com` |
 | MetalLB IP | `192.168.4.50` |
-| Current image tag | `a27a7b5` |
+| Current image tag | see `values.yaml` |
 
 ### Deploying to Dev
 
